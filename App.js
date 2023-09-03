@@ -1,5 +1,5 @@
 import { StatusBar } from "expo-status-bar";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   StyleSheet,
   Text,
@@ -7,19 +7,30 @@ import {
   TextInput,
   Button,
   FlatList,
-  Modal,
-  TouchableHighlight,
   TouchableOpacity,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import Modal from "./components/Modal";
 
 export default function App() {
   const [textValue, setTextValue] = useState("");
   const [itemList, setItemList] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
-  const [itemSelected, setItemSelected] = useState({});
-
-  const onHandleDelete = () => {};
-  const onHandleModal = () => {};
+  const [itemSelected, setItemSelected] = useState();
+  const onHandleDelete = () => {
+    let array = itemList;
+    array.splice(itemSelected, 1);
+    setItemList(array);
+    setModalVisible(false);
+  };
+  const onHandleCancel = () => {
+    setItemSelected();
+    setModalVisible(false);
+  };
+  const onHandleModal = (index) => {
+    setModalVisible(true);
+    setItemSelected(index);
+  };
 
   const onHandleChangeItem = (text) => setTextValue(text);
   const addItem = () => {
@@ -33,10 +44,16 @@ export default function App() {
     setTextValue("");
   };
 
-  const renderItemList = ({ item }) => {
+  const renderItemList = ({ item, index }) => {
     return (
       <TouchableOpacity style={styles.itemContainer}>
         <Text style={styles.itemText}>{item.value}</Text>
+        <TouchableOpacity
+          style={styles.iconTrashContainer}
+          onPress={() => onHandleModal(index)}
+        >
+          <Ionicons name="ios-trash-bin" size={22} color="white" />
+        </TouchableOpacity>
       </TouchableOpacity>
     );
   };
@@ -44,7 +61,9 @@ export default function App() {
   return (
     <View style={styles.container}>
       <StatusBar style="auto" />
-      <View style={styles.titleContainer}><Text style={styles.titlePage}>MARKET</Text></View>
+      <View style={styles.titleContainer}>
+        <Text style={styles.titlePage}>MARKET</Text>
+      </View>
       <View style={styles.inputContainer}>
         <TextInput
           style={styles.input}
@@ -65,28 +84,7 @@ export default function App() {
           keyExtractor={(item) => item.id}
         />
       </View>
-      <Modal visible={modalVisible} animationType="fade" transparent={true}>
-        <View style={styles.modalViewContainer}>
-          <View style={styles.modalViewContent}>
-            <View style={styles.modalTitle}>
-              <Text style={styles.modalTitleText}>Alerta</Text>
-            </View>
-            <View style={styles.modalMessage}>
-              <Text>¿Estás seguro de querer borrar el producto?</Text>
-            </View>
-            <View style={styles.modalButtons}>
-              <TouchableHighlight
-                style={[styles.modalButton, styles.modalButtonRight]}
-              >
-                <Text>Si</Text>
-              </TouchableHighlight>
-              <TouchableHighlight style={styles.modalButton}>
-                <Text>No</Text>
-              </TouchableHighlight>
-            </View>
-          </View>
-        </View>
-      </Modal>
+     <Modal modalVisible={modalVisible} onHandleDelete={onHandleDelete} onHandleCancel={onHandleCancel}/>
     </View>
   );
 }
@@ -95,94 +93,66 @@ const styles = StyleSheet.create({
   container: {
     padding: 30,
   },
-  titleContainer:{
-    height:50,
-    justifyContent:'center',
-    alignItems:'flex-start'
-  },titlePage:{
-    color:'#EB1769',
-    fontSize:18
+  titleContainer: {
+    height: 50,
+    justifyContent: "center",
+    alignItems: "flex-start",
+  },
+  titlePage: {
+    color: "#EB1769",
+    fontSize: 18,
   },
   inputContainer: {
-    marginTop: 20,
+    marginTop: 10,
     justifyContent: "space-between",
     flexDirection: "row",
   },
   input: {
     width: 200,
-    textAlign:"left",
-    paddingLeft:10,
-    width:180,
-    borderWidth:0.15
+    textAlign: "left",
+    paddingLeft: 10,
+    width: 180,
+    borderWidth: 0.15,
   },
-  flatListContainer:{
-    marginTop:20,
-    marginBottom:90
+  flatListContainer: {
+    marginTop: 20,
+    marginBottom: 90,
   },
   itemContainer: {
     backgroundColor: "#EBDA2F",
     marginTop: 8,
     marginBottom: 8,
-    height: 30,
+    height: 35,
     borderRadius: 2,
-    justifyContent: "center",
-    alignItems: "flex-start",
+    justifyContent: "space-between",
+    alignItems: "center",
+    flexDirection: "row",
     shadowColor: "#000",
     shadowOffset: {
-      width: 0,
+      width: 2,
       height: 2,
     },
-    shadowOpacity: 0.23,
-    shadowRadius: 2.62,
+    shadowOpacity: 0.1,
+    shadowRadius: 0.5,
 
-    elevation: 4,
+    elevation: 1,
   },
   itemText: {
     marginLeft: 10,
     color: "#08829E",
   },
-  modalViewContainer: {
-    flex: 1,
+  iconTrashContainer: {
+    backgroundColor: "#EB1769",
     justifyContent: "center",
     alignItems: "center",
-  },
-  modalViewContent: {
-    backgroundColor: "red",
-    height: 150,
-    width: 250,
-    borderWidth: 0.15,
-    backgroundColor: "#f4f4f4",
-  },
-  modalTitle: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "baseline",
-    borderBottomWidth: 0.15,
-  },
-  modalTitleText: {
-    marginLeft: 25,
-  },
-  modalMessage: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalButtons: {
-    height: 40,
-    flex: 1,
-    flexDirection: "row",
-    justifyContent: "space-around",
-    alignItems: "flex-end",
-  },
-  modalButton: {
-    flex: 1,
+    width: 30,
     height: 35,
-    justifyContent: "center",
-    alignItems: "center",
-
-    borderWidth: 0.15,
+    borderBottomRightRadius: 2,
+    borderTopRightRadius: 2,
+    borderLeftWidth: 0.2,
+    borderLeftColor: "black",
   },
-  modalButtonRight: {},
+ 
 });
 //Los nombres que de estilos que tienen que ver
 //con textos los puso con mayúsculas
